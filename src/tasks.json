@@ -1,7 +1,103 @@
 [
     {
         "id": 1,
-        "description": "Phase 1 Testing Complete",
-        "completed": false
+        "description": "Learn Python with Gemini",
+        "title": "Learn Python with Gemini",
+        "completed": true,
+        "priority": "High",
+        "tags": [
+            "study",
+            "coding"
+        ],
+        "due_date": null,
+        "is_recurring": false,
+        "recurrence_interval": null,
+        "created_at": "2026-01-02T14:57:42.429085"
+    },
+    {
+        "id": 2,
+        "description": "Finalize Phase 1 Submission",
+        "title": "Finalize Phase 1 Submission",
+        "completed": false,
+        "priority": "high",
+        "tags": [
+            "hackathon",
+            "final"
+        ],
+        "due_date": null,
+        "is_recurring": true,
+        "recurrence_interval": "daily",
+        "created_at": "2026-01-02T21:57:54.199044"
+    },
+    {
+        "id": 3,
+        "description": "Finalize Phase 1 Submission",
+        "title": "Finalize Phase 1 Submission",
+        "completed": false,
+        "priority": "high",
+        "tags": [
+            "hackathon",
+            "final"
+        ],
+        "due_date": null,
+        "is_recurring": true,
+        "recurrence_interval": "daily",
+        "created_at": "2026-01-02T22:02:48.198677"
+    },
+    {
+        "id": 4,
+        "description": "new year",
+        "title": "new year",
+        "completed": true,
+        "priority": "high",
+        "tags": [
+            "hackathon final"
+        ],
+        "due_date": null,
+        "is_recurring": true,
+        "recurrence_interval": "daily",
+        "created_at": "2026-01-02T22:16:00.827197"
+    },
+    {
+        "id": 5,
+        "description": "new year",
+        "title": "new year",
+        "completed": false,
+        "priority": "high",
+        "tags": [
+            "hackathon final"
+        ],
+        "due_date": null,
+        "is_recurring": true,
+        "recurrence_interval": "daily",
+        "created_at": "2026-01-02T22:18:06.947666"
+    },
+    {
+        "id": 6,
+        "description": "hackathon 1 final",
+        "title": "hackathon 1 final",
+        "completed": false,
+        "priority": "high",
+        "tags": [
+            "manu"
+        ],
+        "due_date": null,
+        "is_recurring": true,
+        "recurrence_interval": "daily",
+        "created_at": "2026-01-02T22:22:21.378771"
+    },
+    {
+        "id": 7,
+        "description": "new year",
+        "title": "new year",
+        "completed": false,
+        "priority": "high",
+        "tags": [
+            "hackathon final"
+        ],
+        "due_date": null,
+        "is_recurring": true,
+        "recurrence_interval": "daily",
+        "created_at": "2026-01-02T22:23:07.402191"
     }
 ]

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthLayout } from "@/components/auth-layout";
-// Sahi import path: Hum apna banaya hua client use karenge
 import { authClient } from "@/lib/auth-client"; 
 import { useRouter } from "next/navigation";
 
@@ -15,7 +14,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state add ki hai
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -23,7 +22,6 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
 
-    // Set up timeout to prevent indefinite loading
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
         reject(new Error('Request timed out. Please try again.'));
@@ -33,7 +31,8 @@ export default function SignupPage() {
     try {
       console.log('Request Sent');
 
-      const response = await Promise.race([
+      // Yahan humne 'as any' add kiya hai taake TypeScript khamosh ho jaye
+      const response = await (Promise.race([
         fetch("http://localhost:8000/api/v1/auth/register", {
           method: "POST",
           mode: 'cors',
@@ -48,10 +47,11 @@ export default function SignupPage() {
           }),
         }),
         timeoutPromise
-      ]);
+      ]) as any);
 
       console.log('Response Received:', response);
 
+      // Response ko any type di hai taake .json() aur .ok kaam karein
       const result = await response.json();
 
       if (!response.ok) {
@@ -59,7 +59,7 @@ export default function SignupPage() {
       } else {
         router.push("/login");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.log('Error Caught:', err);
       setError(err instanceof Error ? err.message : "An error occurred during signup");
     } finally {

@@ -16,6 +16,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(""); // Purana error clear karne ke liye
 
     try {
       const { data, error: authError } = await authClient.signIn.email({
@@ -29,7 +30,7 @@ export default function LoginPage() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (err) {
+    } catch (err: any) { // Yahan 'any' add kiya hai
       setError("An error occurred during login");
       console.error(err);
     }
@@ -43,6 +44,7 @@ export default function LoginPage() {
           <Input
             id="email"
             type="email"
+            placeholder="name@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -54,13 +56,18 @@ export default function LoginPage() {
           <Input
             id="password"
             type="password"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm font-medium bg-red-50 p-2 rounded">
+            {error}
+          </p>
+        )}
 
         <Button type="submit" className="w-full">
           Sign In
@@ -69,7 +76,7 @@ export default function LoginPage() {
 
       <div className="mt-4 text-center text-sm">
         Don't have an account?{" "}
-        <a href="/signup" className="underline">
+        <a href="/signup" className="underline font-medium hover:text-primary">
           Sign up
         </a>
       </div>

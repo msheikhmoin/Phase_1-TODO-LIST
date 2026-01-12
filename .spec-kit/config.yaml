@@ -1,0 +1,47 @@
+# Spec-Kit Configuration for Phase 2 Web Evolution
+# This configuration ensures all specs are stored in the phase2-web-evolution/specs directory
+
+project:
+  name: "Todo App - Phase 2: Web Evolution"
+  version: "2.0.0"
+  description: "Web-based Todo application with SaaS dashboard"
+
+specs:
+  # Root directory for all specifications during Phase 2
+  root_directory: "./phase2-web-evolution/specs"
+
+  # Subdirectories for different spec types
+  directories:
+    api: "./phase2-web-evolution/specs/api"
+    database: "./phase2-web-evolution/specs/database"
+    ui: "./phase2-web-evolution/specs/ui"
+    features: "./phase2-web-evolution/specs/features"
+    history: "./phase2-web-evolution/specs/history"
+
+  # Default file extensions for different spec types
+  extensions:
+    api: ".md"
+    database: ".md"
+    ui: ".md"
+    features: ".md"
+
+phase2:
+  # Phase 2 specific configuration
+  root_directory: "./phase2-web-evolution"
+  specs_directory: "./phase2-web-evolution/specs"
+  backend_directory: "./phase2-web-evolution/backend"
+  frontend_directory: "./phase2-web-evolution/frontend"
+
+  # Ensure all Phase 2 work happens within the phase2-web-evolution folder
+  isolation_enabled: true
+  enforced_directories:
+    - "./phase2-web-evolution/specs"
+    - "./phase2-web-evolution/backend"
+    - "./phase2-web-evolution/frontend"
+
+# Global configuration
+global:
+  default_author: "System Architect"
+  default_license: "MIT"
+  output_format: "markdown"
+  template_engine: "mustache"

@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv:*)",
+      "Bash(dir specs /s)",
+      "Bash(uv init)",
+      "Bash(uv add fastapi sqlmodel psycopg2-binary python-dotenv uvicorn)",
+      "Bash(uv add alembic)",
+      "Bash(alembic init alembic)",
+      "Bash(alembic revision --autogenerate -m \"initial migration\")",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-pnpm)",
+      "Bash(npm install lucide-react framer-motion)",
+      "Bash(npx shadcn-ui@latest init)",
+      "Bash(npx shadcn@latest init)",
+      "Bash(npx shadcn@latest add button input card toast)",
+      "Bash(npx shadcn@latest add button input card sonner)",
+      "Bash(npx shadcn@latest add button)",
+      "Bash(npm install better-auth)",
+      "Bash(uv add pyjwt cryptography)",
+      "Bash(npm install date-fns)",
+      "Bash(npx shadcn@latest add badge calendar select textarea popover)",
+      "Bash(dir \"C:\\\\Users\\\\dell\\\\Desktop\\\\todo\\\\phase2-web-evolution\\\\frontend\\\\src\\\\components\\\\ui\")",
+      "Bash(grep -r \"http://localhost:8000/tasks\" C:UsersdellDesktoptodophase2-web-evolutionfrontend)"
+    ]
+  }
+}

@@ -25,9 +25,11 @@ export default function DashboardPage() {
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  // FIX: Added missing state for modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   /* =========================
-     FETCH TASKS (NO any ❌)
+      FETCH TASKS (NO any ❌)
   ========================= */
   const fetchTasks = async () => {
     try {
@@ -56,14 +58,14 @@ export default function DashboardPage() {
   };
 
   /* =========================
-     INITIAL LOAD
+      INITIAL LOAD
   ========================= */
   useEffect(() => {
     fetchTasks();
   }, []);
 
   /* =========================
-     SEARCH FILTER
+      SEARCH FILTER
   ========================= */
   useEffect(() => {
     if (!searchTerm) {
@@ -81,7 +83,7 @@ export default function DashboardPage() {
   }, [tasks, searchTerm]);
 
   /* =========================
-     CREATE TASK
+      CREATE TASK
   ========================= */
   const handleCreateTask = async (
     newTask: Omit<Task, "id" | "created_at" | "updated_at" | "created_by">
@@ -89,6 +91,7 @@ export default function DashboardPage() {
     try {
       await apiClient.createTask(newTask);
       await fetchTasks();
+      // Logic for modal close
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error creating task:", error);
@@ -97,7 +100,7 @@ export default function DashboardPage() {
   };
 
   /* =========================
-     DELETE TASK
+      DELETE TASK
   ========================= */
   const handleDeleteTask = async (taskId: number) => {
     try {
@@ -110,7 +113,7 @@ export default function DashboardPage() {
   };
 
   /* =========================
-     COMPLETE TASK
+      COMPLETE TASK
   ========================= */
   const handleCompleteTask = async (taskId: number) => {
     try {
@@ -123,7 +126,7 @@ export default function DashboardPage() {
   };
 
   /* =========================
-     UI
+      UI
   ========================= */
   return (
     <div className="space-y-6">

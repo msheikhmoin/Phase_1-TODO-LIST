@@ -16,82 +16,52 @@ export default function DashboardLayout({
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedGradient, setSelectedGradient] = useState<string | undefined>(undefined);
 
-  // Load the selected gradient from localStorage on initial render
   useEffect(() => {
     const savedGradient = localStorage.getItem('selectedGradient');
-    if (savedGradient) {
-      setSelectedGradient(savedGradient);
-    }
+    if (savedGradient) setSelectedGradient(savedGradient);
   }, []);
 
-  const handleCreateTask = async (
-    newTask: Omit<Task, "id" | "created_at" | "updated_at" | "created_by">
-  ) => {
+  const handleCreateTask = async (newTask: Omit<Task, "id" | "created_at" | "updated_at" | "created_by">) => {
     try {
       await apiClient.createTask(newTask);
       setIsModalOpen(false);
-      setEditingTask(null); // Reset editing task
+      setEditingTask(null);
       toast.success("Task created successfully");
-      // Refresh the page to update tasks - the dashboard will handle its own refetching
       window.location.reload();
     } catch (error) {
-      console.error("Error creating task:", error);
       toast.error("Failed to create task");
     }
   };
 
   const handleUpdateTask = async (taskData: Partial<Task>) => {
     if (!editingTask?.id) return;
-
     try {
       await apiClient.updateTask(editingTask.id, taskData);
       setIsModalOpen(false);
-      setEditingTask(null); // Reset editing task
+      setEditingTask(null);
       toast.success("Task updated successfully");
-      // Refresh the page to update tasks - the dashboard will handle its own refetching
       window.location.reload();
     } catch (error) {
-      console.error("Error updating task:", error);
       toast.error("Failed to update task");
     }
   };
 
-  // Listen for custom event to open modal from anywhere in the dashboard
   useEffect(() => {
-    const handleOpenModal = () => {
-      setEditingTask(null); // Reset editing task when opening for creation
-      setIsModalOpen(true);
-    };
-
+    const handleOpenModal = () => { setIsModalOpen(true); setEditingTask(null); };
+    const handleEditTask = (e: any) => { setEditingTask(e.detail); setIsModalOpen(true); };
+    
     window.addEventListener('open-task-modal', handleOpenModal);
-
-    // Cleanup listener on unmount
+    window.addEventListener('edit-task-modal', handleEditTask);
     return () => {
       window.removeEventListener('open-task-modal', handleOpenModal);
-    };
-  }, []);
-
-  // Listen for custom event to open modal in edit mode
-  useEffect(() => {
-    const handleEditTask = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      const task = customEvent.detail;
-      setEditingTask(task);
-      setIsModalOpen(true);
-    };
-
-    window.addEventListener('edit-task-modal', handleEditTask);
-
-    // Cleanup listener on unmount
-    return () => {
       window.removeEventListener('edit-task-modal', handleEditTask);
     };
   }, []);
 
   return (
-    <div className="flex h-screen bg-transparent">
+    <div className="flex min-h-screen bg-transparent">
       <Sidebar setIsModalOpen={setIsModalOpen} selectedGradient={selectedGradient} />
-      <main className="flex-1 overflow-auto pt-4 pb-8 px-4 md:px-8">
+      <main className="flex-1 overflow-auto pt-16 md:pt-4 pb-8 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           {children}
         </div>

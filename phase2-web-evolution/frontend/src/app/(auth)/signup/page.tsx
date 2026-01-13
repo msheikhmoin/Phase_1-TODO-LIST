@@ -24,16 +24,15 @@ export default function SignupPage() {
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
-        reject(new Error('Request timed out. Please try again.'));
-      }, 5000);
+        reject(new Error('Request timed out. Please check your internet or backend status.'));
+      }, 10000); // 10 seconds timeout
     });
 
     try {
-      console.log('Request Sent');
+      console.log('Connecting to:', `${process.env.NEXT_PUBLIC_API_URL}/auth/register`);
 
-      // Yahan humne 'as any' add kiya hai taake TypeScript khamosh ho jaye
       const response = await (Promise.race([
-        fetch("http://localhost:8000/api/v1/auth/register", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
           method: "POST",
           mode: 'cors',
           headers: {
@@ -49,9 +48,6 @@ export default function SignupPage() {
         timeoutPromise
       ]) as any);
 
-      console.log('Response Received:', response);
-
-      // Response ko any type di hai taake .json() aur .ok kaam karein
       const result = await response.json();
 
       if (!response.ok) {
@@ -60,8 +56,8 @@ export default function SignupPage() {
         router.push("/login");
       }
     } catch (err: any) {
-      console.log('Error Caught:', err);
-      setError(err instanceof Error ? err.message : "An error occurred during signup");
+      console.error('Signup Error:', err);
+      setError(err instanceof Error ? err.message : "Failed to connect to backend server");
     } finally {
       setLoading(false);
     }

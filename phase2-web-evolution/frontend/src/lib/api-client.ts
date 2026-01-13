@@ -1,40 +1,37 @@
 // src/lib/api-client.ts
 import { getAuthHeaders } from './auth-client';
 
-const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
+// FIXED: Now using environment variable instead of localhost
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const apiClient = {
   async getTasks() {
-    const token = localStorage.getItem('access_token');
-    console.log("Using Token:", token); // Debug log to see if token is missing
-
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    
     const res = await fetch(
-      `${API_BASE_URL}/tasks/?limit=10&offset=0`,
+      `${API_BASE_URL}/tasks/?limit=50&offset=0`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        credentials: "include",
       }
     );
 
     if (!res.ok) {
-      throw new Error(`Failed to fetch tasks: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to fetch tasks: ${res.status}`);
     }
 
     const data = await res.json();
-
-    // 🔥 IMPORTANT FIX - Updated to handle the response format from backend
-    return data.tasks ? data.tasks : (Array.isArray(data.items) ? data.items : []);
+    // Handling different backend response formats
+    return data.tasks ? data.tasks : (Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : []));
   },
 
   async createTask(task: {
     title: string;
     description?: string;
   }) {
-    const token = localStorage.getItem('access_token');
-    console.log("Using Token:", token); // Debug log to see if token is missing
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
     const res = await fetch(`${API_BASE_URL}/tasks/`, {
       method: "POST",
@@ -42,20 +39,18 @@ export const apiClient = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      credentials: "include",
       body: JSON.stringify(task),
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to create task: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to create task: ${res.status}`);
     }
 
     return res.json();
   },
 
   async deleteTask(taskId: number) {
-    const token = localStorage.getItem('access_token');
-    console.log("Using Token:", token); // Debug log to see if token is missing
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
     const res = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "DELETE",
@@ -63,17 +58,15 @@ export const apiClient = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      credentials: "include",
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to delete task: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to delete task: ${res.status}`);
     }
   },
 
   async completeTask(taskId: number) {
-    const token = localStorage.getItem('access_token');
-    console.log("Using Token:", token); // Debug log to see if token is missing
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
     const res = await fetch(
       `${API_BASE_URL}/tasks/${taskId}/complete`,
@@ -83,18 +76,16 @@ export const apiClient = {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        credentials: "include",
       }
     );
 
     if (!res.ok) {
-      throw new Error(`Failed to complete task: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to complete task: ${res.status}`);
     }
   },
 
-  async updateTask(taskId: number, taskData: Partial<Task>) {
-    const token = localStorage.getItem('access_token');
-    console.log("Using Token:", token); // Debug log to see if token is missing
+  async updateTask(taskId: number, taskData: any) {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
     const res = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
       method: "PUT",
@@ -102,12 +93,11 @@ export const apiClient = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      credentials: "include",
       body: JSON.stringify(taskData),
     });
 
     if (!res.ok) {
-      throw new Error(`Failed to update task: ${res.status} ${res.statusText}`);
+      throw new Error(`Failed to update task: ${res.status}`);
     }
 
     return res.json();

@@ -12,11 +12,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(""); // Purana error clear karne ke liye
+    setError("");
+    setLoading(true);
 
     try {
       const { data, error: authError } = await authClient.signIn.email({
@@ -30,9 +32,10 @@ export default function LoginPage() {
         router.push("/dashboard");
         router.refresh();
       }
-    } catch (err: any) { // Yahan 'any' add kiya hai
-      setError("An error occurred during login");
-      console.error(err);
+    } catch (err: any) {
+      setError("An unexpected error occurred during login");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,8 +72,8 @@ export default function LoginPage() {
           </p>
         )}
 
-        <Button type="submit" className="w-full">
-          Sign In
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Signing In..." : "Sign In"}
         </Button>
       </form>
 

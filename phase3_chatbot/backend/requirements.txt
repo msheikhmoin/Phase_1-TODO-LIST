@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+cohere
+sqlalchemy
+python-dotenv
+psycopg2-binary
+requests

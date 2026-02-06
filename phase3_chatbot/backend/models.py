@@ -27,6 +27,7 @@ class Task(SQLModel, table=True):
     completed: bool = False
     category: str = Field(default="General", nullable=False)  # AI-extracted category
     priority: str = Field(default="Medium", nullable=False)   # AI-determined priority
+    deadline: Optional[datetime] = None  # AI-extracted deadline
     user_id: uuid.UUID = Field(foreign_key="users.id", ondelete="CASCADE")
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)

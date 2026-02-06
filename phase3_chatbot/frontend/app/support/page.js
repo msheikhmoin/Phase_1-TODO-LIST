@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { PaperAirplaneIcon, LifebuoyIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { LifebuoyIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { Sidebar } from '../../components/Sidebar';
-import { ChatInput } from '../../components/ChatInput';
 import { TaskCard } from '../../components/TaskCard';
 import dynamic from 'next/dynamic';
 
@@ -15,17 +14,7 @@ const Clock = dynamic(() => import('../../components/Clock'), {
 
 export default function SupportPage() {
   const router = useRouter();
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      content: "Welcome to the Support page! How can we assist you today?",
-      role: "assistant",
-      timestamp: new Date().toISOString()
-    }
-  ]);
   const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -33,10 +22,6 @@ export default function SupportPage() {
       router.push('/login');
     }
   }, [router]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -66,66 +51,7 @@ export default function SupportPage() {
     };
 
     fetchTasks();
-    scrollToBottom();
   }, [router]);
-
-  const handleSendMessage = async (message) => {
-    if (!message.trim()) return;
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
-
-    const userMessage = {
-      id: Date.now(),
-      content: message,
-      role: "user",
-      timestamp: new Date().toISOString()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ message }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const aiMessage = {
-          id: Date.now() + 1,
-          content: data.response || data.message || `I've processed your request: "${message}".`,
-          role: "assistant",
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, aiMessage]);
-        if (data.tasks_created && Array.isArray(data.tasks_created)) {
-          setTasks(prev => [...prev, ...data.tasks_created]);
-        }
-      } else {
-        const errorData = await response.json();
-        const errorMessage = {
-          id: Date.now() + 1,
-          content: errorData.detail || "Sorry, I encountered an error.",
-          role: "assistant",
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, errorMessage]);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
-      scrollToBottom();
-    }
-  };
 
   const handleLogout = async () => {
     console.log('User logged out');
@@ -152,42 +78,113 @@ export default function SupportPage() {
           </div>
         </motion.header>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <motion.div
-              key={message.id}
-              initial={{ opacity: 0, x: message.role === 'user' ? 20 : -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`max-w-xs lg:max-w-md xl:max-w-lg px-4 py-3 rounded-2xl ${
-                message.role === 'user'
-                  ? 'bg-blue-600 text-white ml-auto'
-                  : 'glass-chat text-white mr-auto border border-white/10'
-              }`}>
-                <p className="text-sm">{message.content}</p>
-                <p className="text-xs opacity-70 mt-1">
-                  {new Date(message.timestamp).toLocaleTimeString()}
-                </p>
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Support Options Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass-container p-6 rounded-2xl"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <LifebuoyIcon className="h-6 w-6 text-emerald-400" />
+              <h2 className="text-xl font-semibold text-white">How can we help you?</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 glass-container rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                <h3 className="text-white font-medium mb-2">FAQ</h3>
+                <p className="text-white/80 text-sm">Find answers to common questions</p>
               </div>
-            </motion.div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="glass-chat px-4 py-3 rounded-2xl text-white">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
+              <div className="p-4 glass-container rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                <h3 className="text-white font-medium mb-2">Contact Us</h3>
+                <p className="text-white/80 text-sm">Get in touch with our team</p>
+              </div>
+              <div className="p-4 glass-container rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                <h3 className="text-white font-medium mb-2">Report Issue</h3>
+                <p className="text-white/80 text-sm">Report a bug or technical issue</p>
+              </div>
+              <div className="p-4 glass-container rounded-lg hover:bg-white/5 transition-colors cursor-pointer">
+                <h3 className="text-white font-medium mb-2">Feature Request</h3>
+                <p className="text-white/80 text-sm">Suggest a new feature</p>
               </div>
             </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+          </motion.div>
 
-        <div className="p-4 glass-chat border-t border-white/10">
-          <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+          {/* Contact Methods Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-container p-6 rounded-2xl"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <SparklesIcon className="h-6 w-6 text-emerald-400" />
+              <h2 className="text-xl font-semibold text-white">Contact Methods</h2>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 glass-container rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <svg className="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path fillRule="evenodd" d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-white">Email Support</span>
+                </div>
+                <span className="text-emerald-400 text-sm">support@viptodo.com</span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 glass-container rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <svg className="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M7 2a2 2 0 00-2 2v12a2 2 0 002 2h6a2 2 0 002-2V4a2 2 0 00-2-2H7zm3 14a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-white">Live Chat</span>
+                </div>
+                <span className="text-green-400 text-sm">Online</span>
+              </div>
+
+              <div className="flex items-center justify-between p-4 glass-container rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <svg className="h-5 w-5 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                  </svg>
+                  <span className="text-white">Phone Support</span>
+                </div>
+                <span className="text-emerald-400 text-sm">+1 (555) 123-4567</span>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Business Hours Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-container p-6 rounded-2xl"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <svg className="h-6 w-6 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+              <h2 className="text-xl font-semibold text-white">Business Hours</h2>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex justify-between py-2 border-b border-white/10">
+                <span className="text-white">Monday - Friday</span>
+                <span className="text-white">9:00 AM - 6:00 PM EST</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-white/10">
+                <span className="text-white">Saturday</span>
+                <span className="text-white">10:00 AM - 4:00 PM EST</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-white">Sunday</span>
+                <span className="text-emerald-400">Closed</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
@@ -201,7 +198,7 @@ export default function SupportPage() {
             <TaskCard key={task.id} task={task} />
           ))}
           {tasks.length === 0 && (
-            <div className="text-center py-8 text-gray-400">
+            <div className="text-center py-8 text-white/70">
               <p>No tasks yet!</p>
             </div>
           )}

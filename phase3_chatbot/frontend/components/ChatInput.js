@@ -22,7 +22,7 @@ export const ChatInput = ({ onSend, isLoading }) => {
         onChange={(e) => setInputValue(e.target.value)}
         placeholder="Type your message... (e.g., 'Remind me to call the plumber at 5 PM tomorrow')"
         disabled={isLoading}
-        className="flex-1 chat-input px-4 py-3 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-primary"
+        className="flex-1 chat-input px-4 py-3 rounded-xl text-slate-900 placeholder-gray-500 bg-white/80 focus:outline-none focus:ring-2 focus:ring-emerald-500"
       />
       <button
         type="submit"

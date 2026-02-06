@@ -1,70 +1,52 @@
 'use client';
+import { TrashIcon, CalendarIcon, TagIcon } from '@heroicons/react/24/outline';
 
-import { motion } from 'framer-motion';
-import { CheckCircleIcon, ClockIcon, TagIcon } from '@heroicons/react/24/outline';
+export const TaskCard = ({ task, onDelete }) => {
+  // Safety check for task object
+  if (!task) {
+    console.error("TaskCard received undefined/null task");
+    return null;
+  }
 
-export const TaskCard = ({ task }) => {
-  const getPriorityColor = (priority) => {
-    switch (priority?.toLowerCase()) {
-      case 'high':
-        return 'from-red-500 to-red-600';
-      case 'medium':
-        return 'from-yellow-500 to-yellow-600';
-      case 'low':
-        return 'from-green-500 to-green-600';
-      default:
-        return 'from-gray-500 to-gray-600';
-    }
-  };
+  // Debug log to check incoming data in Browser Console (F12)
+  console.log("Rendering Task:", task);
 
-  const getCategoryColor = (category) => {
-    switch (category?.toLowerCase()) {
-      case 'work':
-        return 'text-blue-400';
-      case 'personal':
-        return 'text-purple-400';
-      case 'health':
-        return 'text-pink-400';
-      case 'auto':
-        return 'text-indigo-400';
-      case 'home':
-        return 'text-orange-400';
-      default:
-        return 'text-gray-400';
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'No Date';
+    try {
+      const date = new Date(dateValue);
+      return isNaN(date.getTime()) ? 'No Date' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } catch (e) {
+      return 'No Date';
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      className="task-card glass-container p-4 rounded-xl border-l-4 hover:shadow-glow transition-all duration-300"
-    >
-      <div className="flex items-start justify-between mb-2">
-        <h3 className="font-semibold text-white text-sm">{task.title}</h3>
-        <span className={`text-xs px-2 py-1 rounded-full bg-gradient-to-r ${getPriorityColor(task.priority)} text-white`}>
-          {task.priority}
-        </span>
-      </div>
+    <div className="bg-black/20 backdrop-blur-md border border-emerald-500/30 rounded-2xl p-4 mb-3 relative group shadow-[0_0_15px_rgba(52,211,153,0.1)] hover:border-emerald-400/60 transition-all">
+      {/* DELETE BUTTON */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          if(window.confirm('Delete this task?')) onDelete(task.id); // Keeping task.id as it should match the backend
+        }}
+        className="absolute top-3 right-3 p-1.5 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors z-50"
+      >
+        <TrashIcon className="h-5 w-5" />
+      </button>
 
-      <p className="text-gray-300 text-xs mb-3 line-clamp-2">{task.description}</p>
+      <h3 className="text-white font-bold text-lg pr-8">{task.title || "Untitled Task"}</h3>
+      <p className="text-emerald-300/80 text-sm font-medium mt-1">{task.description}</p>
 
-      <div className="flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-1">
-          <TagIcon className="h-3 w-3 text-gray-400" />
-          <span className={getCategoryColor(task.category)}>
-            {task.category}
-          </span>
+      <div className="flex items-center space-x-4 mt-4 text-[10px] uppercase tracking-wider text-emerald-400 font-black">
+        <div className="flex items-center bg-emerald-500/10 px-2 py-1 rounded-md">
+          <TagIcon className="h-3 w-3 mr-1" />
+          {task.category || 'General'}
         </div>
-
-        <div className="flex items-center space-x-1 text-gray-400">
-          <ClockIcon className="h-3 w-3" />
-          <span>
-            {new Date(task.created_at || task.createdAt || Date.now()).toLocaleDateString()}
-          </span>
+        <div className="flex items-center bg-emerald-500/10 px-2 py-1 rounded-md">
+          <CalendarIcon className="h-3 w-3 mr-1" />
+          {formatDate(task.deadline || task.date)}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

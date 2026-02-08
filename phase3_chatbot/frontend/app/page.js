@@ -18,7 +18,7 @@ export default function Home() {
   const messagesEndRef = useRef(null);
 
   // --- API URL FIX (Removing the extra /api since your backend doesn't use it) ---
-  const API_URL = "http://localhost:8000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://moin-robo-todo-ai-backend.hf.space";
 
   const fetchTasks = useCallback(async () => {
     const token = localStorage.getItem('token');

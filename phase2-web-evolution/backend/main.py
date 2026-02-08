@@ -1,23 +1,25 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import init_db
 import os
 from dotenv import load_dotenv
 from auth_utils import get_current_user
+from fastapi import Depends
 
 # Load environment variables
 load_dotenv()
 
 app = FastAPI(title="Todo API", version="1.0.0")
 
-# ✅ UPDATED CORS: Is se Vercel aur Local dono kaam karenge
+# CORS middleware to allow requests from localhost:3000 (frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for production
+    allow_origins=["http://localhost:3000"],  # Allow requests from frontend
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],  # Allow all headers
-    max_age=3600,
+    # Additional security settings
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
 
 # Include authentication routes
@@ -31,17 +33,15 @@ app.include_router(tasks_router, prefix="/api/v1", tags=["tasks"])
 @app.on_event("startup")
 async def startup_event():
     """Initialize database on startup"""
-    try:
-        init_db()
-        print("Database initialized successfully")
-    except Exception as e:
-        print(f"Database init error: {e}")
+    init_db()
+    print("Database initialized successfully")
 
 @app.get("/")
 def read_root():
-    """Root endpoint for health check - Hugging Face uses this to check if app is alive"""
-    return {"message": "Todo API is running on Hugging Face", "status": "healthy"}
+    """Root endpoint for health check"""
+    return {"message": "Todo API is running", "status": "healthy"}
 
+# Placeholder for protected route
 @app.get("/protected")
 def protected_route(current_user: dict = Depends(get_current_user)):
     """Protected route that requires authentication"""
@@ -51,8 +51,15 @@ def protected_route(current_user: dict = Depends(get_current_user)):
         "authenticated": True
     }
 
-if __name__ == "__main__":
+# Include other routes here when created
+# from . import routes
+# app.include_router(routes.router, prefix="/api/v1")
+
+def main():
+    """Main function for development"""
     import uvicorn
-    # Hugging Face normally uses port 7860
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+if __name__ == "__main__":
+    main()

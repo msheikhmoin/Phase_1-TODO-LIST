@@ -10,11 +10,9 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 interface SidebarProps {
   setIsModalOpen?: (open: boolean) => void;
   selectedGradient?: string;
-  activeView?: 'tasks' | 'chat';
-  setActiveView?: (view: 'tasks' | 'chat') => void;
 }
 
-export function Sidebar({ setIsModalOpen, selectedGradient, activeView, setActiveView }: SidebarProps) {
+export function Sidebar({ setIsModalOpen, selectedGradient }: SidebarProps) {
   const pathname = usePathname();
 
   const getSidebarBackground = () => {
@@ -23,53 +21,45 @@ export function Sidebar({ setIsModalOpen, selectedGradient, activeView, setActiv
   };
 
   const navItems = [
-    {
-      id: 'tasks',
-      label: "My Tasks",
-      icon: Calendar,
-      onClick: () => setActiveView?.('tasks')
-    },
-    {
-      id: 'chat',
-      label: "AI Assistant",
-      icon: Home,
-      onClick: () => setActiveView?.('chat')
-    },
+    { href: "/dashboard", label: "Dashboard", icon: Home },
+    { href: "/tasks", label: "Tasks", icon: Calendar },
+    { href: "/profile", label: "Profile", icon: User },
+    { href: "/settings", label: "Settings", icon: Settings },
   ];
 
   const SidebarContent = () => (
     <div
       className={cn(
-        "rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg p-4 h-full flex flex-col bg-gradient-to-b from-slate-800/90 to-slate-900/90 backdrop-blur-xl",
-        selectedGradient ? "bg-slate-800/30 dark:bg-slate-900/30" : ""
+        "rounded-2xl border border-gray-200/60 dark:border-gray-700/60 shadow-lg p-4 h-full flex flex-col",
+        selectedGradient ? "backdrop-blur-lg bg-white/30 dark:bg-gray-800/30" : "backdrop-blur-lg bg-white/80 dark:bg-gray-800/80"
       )}
       style={selectedGradient ? { backgroundImage: getSidebarBackground() } : {}}
     >
       <div className="mb-8">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-          TodoPro AI
+        <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          TodoPro
         </h1>
       </div>
 
       <nav className="space-y-2 flex-1">
         {navItems.map((item) => {
-          const isActive = activeView === item.id;
+          const isActive = pathname === item.href;
           const Icon = item.icon;
           return (
-            <Button
-              key={item.id}
-              variant="ghost"
-              onClick={item.onClick}
-              className={cn(
-                "w-full justify-start rounded-xl transition-all duration-200",
-                isActive
-                  ? "bg-blue-500/20 text-blue-300 border border-blue-400/30"
-                  : "hover:bg-slate-700/50 text-slate-300"
-              )}
-            >
-              <Icon className="mr-3 h-5 w-5" />
-              {item.label}
-            </Button>
+            <Link key={item.href} href={item.href}>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start rounded-xl transition-all duration-200",
+                  isActive
+                    ? "bg-blue-100/70 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border border-blue-200/50"
+                    : "hover:bg-gray-100/70 dark:hover:bg-gray-700/70"
+                )}
+              >
+                <Icon className="mr-3 h-5 w-5" />
+                {item.label}
+              </Button>
+            </Link>
           );
         })}
       </nav>
@@ -77,13 +67,13 @@ export function Sidebar({ setIsModalOpen, selectedGradient, activeView, setActiv
       <div className="mt-auto pt-8">
         <Button
           onClick={() => setIsModalOpen?.(true)}
-          className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-xl py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+          className="w-full bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <Plus className="mr-2 h-5 w-5" />
           Add Task
         </Button>
         <div className="mt-4 text-center">
-          <p className="text-xs text-slate-400">Powered by AI Assistant</p>
+          <p className="text-xs text-white/60">Built with ❤️ by Moin Sheikh</p>
         </div>
       </div>
     </div>
@@ -100,11 +90,11 @@ export function Sidebar({ setIsModalOpen, selectedGradient, activeView, setActiv
       <div className="md:hidden fixed top-4 left-4 z-50">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="rounded-full shadow-md bg-slate-800 dark:bg-slate-800 text-white">
+            <Button variant="outline" size="icon" className="rounded-full shadow-md bg-white dark:bg-gray-800">
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="p-4 w-72 bg-slate-900 border-slate-700">
+          <SheetContent side="left" className="p-4 w-72 bg-transparent border-none">
             <SidebarContent />
           </SheetContent>
         </Sheet>

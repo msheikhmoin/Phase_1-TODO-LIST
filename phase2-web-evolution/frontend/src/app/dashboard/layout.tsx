@@ -3,15 +3,9 @@
 import { useState, useEffect } from "react";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { CreateTaskModal } from "@/components/dashboard/create-task-modal";
-import dynamic from 'next/dynamic';
 import { Task } from "@/types/task";
 import { apiClient } from "@/lib/api-client";
 import { toast } from "sonner";
-
-const ChatWindow = dynamic(() => import('@/components/dashboard/chat-window'), {
-  loading: () => <div className="flex items-center justify-center h-full">Loading chat...</div>,
-  ssr: false
-});
 
 export default function DashboardLayout({
   children,
@@ -21,7 +15,6 @@ export default function DashboardLayout({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [selectedGradient, setSelectedGradient] = useState<string | undefined>(undefined);
-  const [activeView, setActiveView] = useState<'tasks' | 'chat'>('tasks');
 
   useEffect(() => {
     const savedGradient = localStorage.getItem('selectedGradient');
@@ -56,7 +49,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const handleOpenModal = () => { setIsModalOpen(true); setEditingTask(null); };
     const handleEditTask = (e: any) => { setEditingTask(e.detail); setIsModalOpen(true); };
-
+    
     window.addEventListener('open-task-modal', handleOpenModal);
     window.addEventListener('edit-task-modal', handleEditTask);
     return () => {
@@ -66,24 +59,11 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      <Sidebar
-        setIsModalOpen={setIsModalOpen}
-        selectedGradient={selectedGradient}
-        activeView={activeView}
-        setActiveView={setActiveView}
-      />
+    <div className="flex min-h-screen bg-transparent">
+      <Sidebar setIsModalOpen={setIsModalOpen} selectedGradient={selectedGradient} />
       <main className="flex-1 overflow-auto pt-16 md:pt-4 pb-8 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto h-full">
-          {activeView === 'tasks' ? (
-            <div className="space-y-6">
-              {children}
-            </div>
-          ) : (
-            <div className="h-[calc(100vh-8rem)]">
-              <ChatWindow />
-            </div>
-          )}
+        <div className="max-w-6xl mx-auto">
+          {children}
         </div>
       </main>
       <CreateTaskModal

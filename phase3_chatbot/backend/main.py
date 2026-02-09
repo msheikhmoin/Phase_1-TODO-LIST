@@ -1,18 +1,21 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from database import get_session_dependency
+from database import get_session_dependency as get_session  # database.py se import
 from sqlmodel import Session, select
-from typing import Annotated, List
+from typing import List
 import uvicorn
-from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
-from models import User, Task
-from datetime import timedelta
+import os
+from datetime import timedelta, datetime
 from pydantic import BaseModel
-from ai_service import extract_tasks_from_text
 
-app = FastAPI(title="Todo AI Chatbot Backend", version="0.1.0")
+# Phase 3 specific imports
+from auth import get_password_hash, authenticate_user, create_access_token, get_current_user # auth.py se import
+from models import User, ChatHistory # Humne jo p3 models banaye thay
+# Note: Agar aapne tasks ka table bhi p3_tasks rakha hai to models se import karein
 
-# CORS Fix: Allow all origins for Vercel frontend to communicate with Hugging Face backend
+app = FastAPI(title="Phase 3 Todo AI Chatbot", version="1.0.0")
+
+# CORS Setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,8 +24,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Pydantic Schemas ---
 class UserCreate(BaseModel):
     email: str
+    username: str
     password: str
 
 class UserLogin(BaseModel):
@@ -38,156 +43,78 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     message: str
-    tasks_created: List[Task] = []
+    chat_id: int
+
+# --- Routes ---
 
 @app.get("/")
 def read_root():
-    return {"message": "Backend is running!"}
+    return {"message": "Phase 3 Backend (p3_) is running!"}
 
-@app.post("/auth/signup", response_model=User)
-def signup(user_create: UserCreate, session: Session = Depends(get_session_dependency)):
+@app.post("/auth/signup", response_model=dict)
+def signup(user_create: UserCreate, session: Session = Depends(get_session)):
     existing_user = session.exec(select(User).where(User.email == user_create.email)).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    hashed_password = get_password_hash(user_create.password)
-    user = User(email=user_create.email, hashed_password=hashed_password)
+    
+    hashed_pw = get_password_hash(user_create.password)
+    user = User(
+        email=user_create.email, 
+        username=user_create.username, 
+        password_hash=hashed_pw
+    )
     session.add(user)
     session.commit()
     session.refresh(user)
-    return user
+    return {"message": "User created successfully", "user_id": user.id}
 
 @app.post("/auth/login", response_model=Token)
-def login(user_login: UserLogin, session: Session = Depends(get_session_dependency)):
-    # Debug log
-    print(f"--- Login Attempt: {user_login.email} ---")
-
+def login(user_login: UserLogin, session: Session = Depends(get_session)):
     user = authenticate_user(session, user_login.email, user_login.password)
     if not user:
-        print("--- Login Failed: Invalid Credentials ---")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
         )
 
     access_token = create_access_token(data={"sub": user.email}, expires_delta=timedelta(minutes=60))
-    print("--- Login Successful! ---")
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/tasks", response_model=List[Task])
-def read_tasks(current_user: User = Depends(get_current_user), session: Session = Depends(get_session_dependency)):
-    return session.exec(select(Task).where(Task.user_id == current_user.id)).all()
-
 @app.post("/chat", response_model=ChatResponse)
-def chat(chat_request: ChatRequest, current_user: User = Depends(get_current_user), session: Session = Depends(get_session_dependency)):
-    print(f"--- Chat Received: {chat_request.message} ---")
+async def chat(
+    chat_request: ChatRequest, 
+    current_user: User = Depends(get_current_user), 
+    session: Session = Depends(get_session)
+):
+    print(f"--- Chat Received from {current_user.username}: {chat_request.message} ---")
+    
+    # Yahan hum Cohere AI ka response generate karenge
+    import cohere
+    co = cohere.Client(os.getenv("COHERE_API_KEY"))
+    
     try:
-        # Use AI service, which now has robust fallback logic
-        extracted_tasks_data = extract_tasks_from_text(chat_request.message)
+        response = co.generate(
+            model='command-xlarge-nightly',
+            prompt=f"User says: {chat_request.message}. Reply in a friendly Desi/Urdu-English way as a task manager helper.",
+            max_tokens=200
+        )
+        ai_msg = response.generations[0].text.strip()
 
-        created_tasks = []
-        if extracted_tasks_data:
-            for task_data in extracted_tasks_data:
-                # Handle deadline conversion if it's a string
-                deadline = task_data.get("deadline")
-                if deadline and isinstance(deadline, str):
-                    from datetime import datetime
-                    # Parse string deadline to datetime object
-                    try:
-                        # Try ISO format first
-                        deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
-                    except:
-                        try:
-                            # Try parsing as date string (YYYY-MM-DD)
-                            from datetime import datetime
-                            deadline = datetime.strptime(deadline, '%Y-%m-%d')
-                        except:
-                            # If all parsing fails, use current date
-                            deadline = datetime.now()
+        # Database (p3_chat_history) mein save karna
+        new_chat = ChatHistory(
+            user_id=current_user.id,
+            prompt=chat_request.message,
+            response=ai_msg
+        )
+        session.add(new_chat)
+        session.commit()
+        session.refresh(new_chat)
 
-                # Agar message mein task mil jaye, to usay Automatically database mein save karo (db.add(new_task))
-                new_task = Task(
-                    title=task_data.get("title", "New Task"),
-                    description=task_data.get("description", ""),
-                    category=task_data.get("category", "General"),
-                    priority=task_data.get("priority", "Medium"),
-                    deadline=deadline,
-                    user_id=current_user.id
-                )
-                session.add(new_task)
-                created_tasks.append(new_task)
-
-            session.commit()
-            for t in created_tasks:
-                session.refresh(t)
-
-        # VIP Conversational Responses: Replace hardcoded 'Task updated!' with friendly desi responses
-        if created_tasks:
-            task_names = [task.title for task in created_tasks]
-            task_list_str = ", ".join(task_names[:2])  # Show first 2 tasks
-            if len(task_names) > 2:
-                task_list_str += f", aur {len(task_names)-2} aur tasks"
-
-            # Extract deadline for the response message
-            deadline_str = ""
-            if created_tasks and created_tasks[0].deadline:
-                from datetime import datetime
-                deadline = created_tasks[0].deadline
-                if isinstance(deadline, str):
-                    # If deadline is a string, try to parse it
-                    try:
-                        parsed_date = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
-                        deadline_str = parsed_date.strftime('%Y-%m-%d')
-                    except:
-                        deadline_str = "specified date"
-                elif hasattr(deadline, 'strftime'):
-                    deadline_str = deadline.strftime('%Y-%m-%d')
-                else:
-                    deadline_str = "specified date"
-
-                # VIP conversational response
-                msg = f"Ji bhai, aapka task {task_list_str} {deadline_str} ke liye save kar diya hai! 😊"
-            else:
-                # VIP conversational response without date
-                msg = f"Ji bhai, aapka task {task_list_str} successfully add kar diya hai! 😊"
-        else:
-            # Friendly response when no tasks are extracted
-            msg = "Acha bataiye, main aapki kis tarah madad kar sakta hun? 🤔"
-
-        print(f"--- Chat Success: {msg} ---")
-        # Return JSON mein ek flag bhejo: tasks_created: true
-        return ChatResponse(message=msg, tasks_created=created_tasks)
+        return ChatResponse(message=ai_msg, chat_id=new_chat.id)
 
     except Exception as e:
-        print(f"--- Chat Error: {str(e)} ---")
         session.rollback()
-        # Return a safe response even if there are database errors
-        return ChatResponse(message="Aapki baat samjhi gayi, lekin thoda technical issue hai. Phir se try kariye!", tasks_created=[])
-
-@app.delete("/tasks/{task_id}")
-def delete_task(task_id: str, current_user: User = Depends(get_current_user), session: Session = Depends(get_session_dependency)):
-    # Convert the string task_id to UUID to match the database schema
-    from uuid import UUID
-    try:
-        task_uuid = UUID(task_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid task ID format")
-
-    # Find the task by ID and ensure it belongs to the current user
-    task = session.exec(select(Task).where(Task.id == task_uuid, Task.user_id == current_user.id)).first()
-
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    # Delete the task
-    session.delete(task)
-    session.commit()
-
-    return {"message": "Task deleted successfully"}
-
-@app.on_event("startup")
-def on_startup():
-    from database import create_db_and_tables
-    create_db_and_tables()
+        raise HTTPException(status_code=500, detail=f"AI Error: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

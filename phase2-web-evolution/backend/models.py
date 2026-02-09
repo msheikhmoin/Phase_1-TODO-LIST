@@ -17,7 +17,8 @@ class TaskPriority(str, enum.Enum):
     URGENT = "urgent"
 
 class User(SQLModel, table=True):
-    __tablename__ = "users"
+    # Tablename change to separate Phase 2
+    __tablename__ = "p2_users" 
 
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str = Field(sa_column=Column(String, unique=True, nullable=False, index=True))
@@ -35,7 +36,8 @@ class User(SQLModel, table=True):
     )
 
 class Task(SQLModel, table=True):
-    __tablename__ = "tasks"
+    # Tablename change to separate Phase 2
+    __tablename__ = "p2_tasks"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(sa_column=Column(String, nullable=False))
@@ -44,9 +46,9 @@ class Task(SQLModel, table=True):
     priority: str = Field(default=TaskPriority.MEDIUM.value, sa_column=Column(String, nullable=False))
     due_date: Optional[datetime] = Field(sa_column=Column(DateTime))
     
-    # Corrected Foreign Key
-    created_by: int = Field(foreign_key="users.id", nullable=False)
-    assigned_to: Optional[int] = Field(default=None, foreign_key="users.id")
+    # Foreign key updated to point to p2_users
+    created_by: int = Field(foreign_key="p2_users.id", nullable=False)
+    assigned_to: Optional[int] = Field(default=None, foreign_key="p2_users.id")
     
     created_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)
     updated_at: datetime = Field(default_factory=datetime.utcnow, nullable=False)

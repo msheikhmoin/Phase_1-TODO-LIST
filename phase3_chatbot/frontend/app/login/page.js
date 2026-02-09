@@ -15,28 +15,22 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // 1. Pehle JSON format try karein (Jo modern FastAPI mein hota hai)
-      const res = await fetch(`https://moin-robo-todo-ai-backend.hf.space/auth/login`, {
+      // 🔥 FIX: Removed /auth from the URL to match your main.py
+      const res = await fetch(`https://moin-robo-todo-ai-backend.hf.space/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email, password: password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
         localStorage.setItem('token', data.access_token);
-        window.location.href = '/'; // Hard redirect to dashboard
+        window.location.href = '/'; 
       } else {
-        // Agar 500 error hai toh uska matlab backend code mein bug hai
-        if (res.status === 500) {
-          setError("Backend Server phat gaya hai (500 Error). Please check backend logs.");
-        } else {
-          setError(data.detail || "Invalid email or password");
-        }
+        setError(data.detail || "Invalid email or password");
       }
     } catch (err) {
-      // Agar fetch hi na ho paye (CORS ya network issue)
       setError("Server connection failed. Is backend running?");
     } finally {
       setIsLoading(false);
@@ -59,40 +53,30 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleLogin} className="space-y-5">
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400 ml-1">Email</label>
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="w-full bg-[#2a2f45] border-none p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-slate-400 ml-1">Password</label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="w-full bg-[#2a2f45] border-none p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full bg-[#2a2f45] p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full bg-[#2a2f45] p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           <button 
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 text-white font-bold py-4 rounded-xl transition-all mt-4"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all"
           >
             {isLoading ? "Processing..." : "Sign In"}
           </button>
         </form>
-
-        <p className="mt-8 text-center text-sm text-slate-500">
-          Don't have an account? <a href="/signup" className="text-blue-500 font-medium">Sign up</a>
-        </p>
       </div>
     </div>
   );

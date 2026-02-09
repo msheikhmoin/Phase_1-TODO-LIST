@@ -17,6 +17,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // Pakka Backend URL
   const API_URL = "https://moin-robo-todo-ai-backend.hf.space";
 
   useEffect(() => { setMounted(true); }, []);
@@ -32,7 +33,9 @@ export default function Home() {
         const data = await res.json();
         setTasks(Array.isArray(data) ? data : []);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Tasks Fetch Error:", e); 
+    }
   }, [router]);
 
   useEffect(() => { if (mounted) fetchTasks(); }, [fetchTasks, mounted]);
@@ -40,22 +43,39 @@ export default function Home() {
   const handleSendMessage = async (msg) => {
     if (!msg.trim()) return;
     const token = localStorage.getItem('token');
-    setMessages(p => [...p, { id: Date.now(), content: msg, role: "user" }]);
+    if (!token) {
+        alert("Session expired. Please login again.");
+        return router.push('/login');
+    }
+
+    const userMsgId = Date.now();
+    setMessages(p => [...p, { id: userMsgId, content: msg, role: "user" }]);
     setIsLoading(true);
 
     try {
       const res = await fetch(`${API_URL}/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+        },
         body: JSON.stringify({ message: msg }),
       });
+
       const data = await res.json();
+      
       if (res.ok) {
-        setMessages(p => [...p, { id: Date.now()+1, content: data.message, role: "assistant" }]);
-        fetchTasks();
+        setMessages(p => [...p, { id: Date.now() + 1, content: data.message, role: "assistant" }]);
+        // Chat ke baad tasks refresh karein taake agar koi task add hua ho toh dikh jaye
+        setTimeout(() => fetchTasks(), 1000);
+      } else {
+        const errorMsg = data.detail || "Something went wrong on the server.";
+        setMessages(p => [...p, { id: Date.now() + 1, content: `Error: ${errorMsg}`, role: "assistant" }]);
       }
-    } catch (e) { console.error(e); }
-    finally { 
+    } catch (e) { 
+      console.error("Chat Error:", e);
+      setMessages(p => [...p, { id: Date.now() + 1, content: "Network error. Please check your connection.", role: "assistant" }]);
+    } finally { 
       setIsLoading(false); 
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
     }
@@ -64,10 +84,10 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-black">
-      {/* Background Fix: Ensure green.jpg is in /public folder */}
+    <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-black text-white">
+      {/* Background Image */}
       <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
         style={{ backgroundImage: "url('/green.jpg')" }}
       />
       
@@ -83,9 +103,19 @@ export default function Home() {
           </header>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.length === 0 && (
+                <div className="text-center text-slate-500 mt-20">
+                    <SparklesIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                    <p>Ask me to save a task or just say Hi!</p>
+                </div>
+            )}
             {messages.map((m) => (
               <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`p-4 rounded-2xl max-w-[70%] ${m.role === 'user' ? 'bg-emerald-600' : 'bg-slate-800 border border-white/10'}`}>
+                <div className={`p-4 rounded-2xl max-w-[70%] shadow-lg ${
+                    m.role === 'user' 
+                    ? 'bg-emerald-600 text-white' 
+                    : 'bg-slate-800 border border-white/10 text-emerald-50'
+                }`}>
                   {m.content}
                 </div>
               </div>
@@ -93,16 +123,26 @@ export default function Home() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div className="p-4 bg-black/40 backdrop-blur-lg">
+          <div className="p-4 bg-black/40 backdrop-blur-lg border-t border-white/5">
             <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
           </div>
         </div>
 
-        <div className="w-80 bg-black/20 border-l border-white/10 backdrop-blur-md overflow-y-auto p-4">
-          <h2 className="text-emerald-400 font-bold mb-4">TASKS</h2>
-          {tasks.map(t => <TaskCard key={t.id} task={t} onDelete={fetchTasks} />)}
+        {/* Task Sidebar */}
+        <div className="w-80 bg-black/40 border-l border-white/10 backdrop-blur-md overflow-y-auto p-4 hidden lg:block">
+          <div className="flex items-center gap-2 mb-6">
+            <CheckCircleIcon className="w-6 h-6 text-emerald-400" />
+            <h2 className="text-emerald-400 font-bold text-lg tracking-widest">MY TASKS</h2>
+          </div>
+          <div className="space-y-3">
+            {tasks.length === 0 ? (
+                <p className="text-slate-500 text-sm text-center italic">No tasks yet.</p>
+            ) : (
+                tasks.map(t => <TaskCard key={t.id} task={t} onDelete={fetchTasks} />)
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
-}
+}git 

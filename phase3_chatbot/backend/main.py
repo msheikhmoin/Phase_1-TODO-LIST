@@ -94,7 +94,7 @@ async def chat(
     
     try:
         response = co.generate(
-            model='command-xlarge-nightly',
+            model='command',
             prompt=f"User says: {chat_request.message}. Reply in a friendly Desi/Urdu-English way as a task manager helper.",
             max_tokens=200
         )

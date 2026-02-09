@@ -12,7 +12,6 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
-    // Agar pehle se token hai toh dashboard pe bhejo
     const token = localStorage.getItem('token');
     if (token) {
       router.push('/');
@@ -25,33 +24,31 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      // Phase 3 Backend URL check
       const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       
+      // 🔥 FIX FOR PHASE 3: FastAPI OAuth2 expects Form Data
+      const formData = new URLSearchParams();
+      formData.append('username', email); // FastAPI standard: 'username' field for login
+      formData.append('password', password);
+
       const response = await fetch(`${apiUrl}/auth/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded', // ✅ Header changed
         },
-        body: JSON.stringify({ 
-            email: email, 
-            password: password 
-        }),
+        body: formData, // ✅ Sending URLSearchParams instead of JSON
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Token save karein (Backend se 'access_token' aata hai)
         localStorage.setItem('token', data.access_token);
-        console.log("Login Successful, Token Saved!");
-        router.push('/'); // Dashboard/Chat pe redirect
+        router.push('/'); 
       } else {
-        // Backend detail message dikhayein
         setError(data.detail || 'Login failed. Please check your credentials.');
       }
     } catch (err) {
-      setError('Server se connect nahi ho pa raha. Check if backend is running.');
+      setError('Server connection failed. Is backend running?');
     } finally {
       setIsLoading(false);
     }

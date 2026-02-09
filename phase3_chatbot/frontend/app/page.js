@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+// Icons hata diye hain kyunke build crash kar rahi thi
 import { Sidebar } from '../components/Sidebar';
 import { ChatInput } from '../components/ChatInput';
 import { TaskCard } from '../components/TaskCard';
@@ -17,7 +17,6 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Pakka Backend URL
   const API_URL = "https://moin-robo-todo-ai-backend.hf.space";
 
   useEffect(() => { setMounted(true); }, []);
@@ -66,15 +65,13 @@ export default function Home() {
       
       if (res.ok) {
         setMessages(p => [...p, { id: Date.now() + 1, content: data.message, role: "assistant" }]);
-        // Chat ke baad tasks refresh karein taake agar koi task add hua ho toh dikh jaye
         setTimeout(() => fetchTasks(), 1000);
       } else {
-        const errorMsg = data.detail || "Something went wrong on the server.";
+        const errorMsg = data.detail || "Something went wrong.";
         setMessages(p => [...p, { id: Date.now() + 1, content: `Error: ${errorMsg}`, role: "assistant" }]);
       }
     } catch (e) { 
-      console.error("Chat Error:", e);
-      setMessages(p => [...p, { id: Date.now() + 1, content: "Network error. Please check your connection.", role: "assistant" }]);
+      setMessages(p => [...p, { id: Date.now() + 1, content: "Network error.", role: "assistant" }]);
     } finally { 
       setIsLoading(false); 
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
@@ -85,7 +82,6 @@ export default function Home() {
 
   return (
     <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-black text-white">
-      {/* Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40"
         style={{ backgroundImage: "url('/green.jpg')" }}
@@ -105,7 +101,7 @@ export default function Home() {
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 && (
                 <div className="text-center text-slate-500 mt-20">
-                    <SparklesIcon className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                    <span className="text-5xl block mb-4">✨</span>
                     <p>Ask me to save a task or just say Hi!</p>
                 </div>
             )}
@@ -128,10 +124,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Task Sidebar */}
         <div className="w-80 bg-black/40 border-l border-white/10 backdrop-blur-md overflow-y-auto p-4 hidden lg:block">
           <div className="flex items-center gap-2 mb-6">
-            <CheckCircleIcon className="w-6 h-6 text-emerald-400" />
+            <span className="text-xl">✅</span>
             <h2 className="text-emerald-400 font-bold text-lg tracking-widest">MY TASKS</h2>
           </div>
           <div className="space-y-3">
@@ -145,4 +140,4 @@ export default function Home() {
       </div>
     </div>
   );
-}git 
+}

@@ -8,7 +8,6 @@ from datetime import timedelta
 from pydantic import BaseModel
 import cohere
 
-# Models aur Auth imports
 from auth import get_password_hash, authenticate_user, create_access_token, get_current_user
 from models import User, ChatHistory, Task
 
@@ -25,27 +24,39 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
 
-# --- Task Routes (Fixing 404) ---
 @app.get("/tasks")
 async def get_tasks(current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
     return session.exec(select(Task).where(Task.user_id == current_user.id)).all()
 
-# --- Chat Route (Fixing 500) ---
 @app.post("/chat")
 async def chat(req: ChatRequest, current_user: User = Depends(get_current_user), session: Session = Depends(get_session)):
-    co = cohere.Client(os.getenv("COHERE_API_KEY"))
+    api_key = os.getenv("COHERE_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="API Key missing in Secrets")
+    
+    co = cohere.Client(api_key)
     try:
-        response = co.generate(prompt=f"User: {req.message}", max_tokens=100)
+        # AI Prompt for Task detection
+        response = co.generate(
+            prompt=f"User wants to manage tasks. User message: {req.message}\nReply in friendly Hinglish/Urdu. If they mention a task, say 'Theek hai, save kar liya!'.", 
+            max_tokens=100
+        )
         ai_msg = response.generations[0].text.strip()
         
-        # Simple task detection
-        if "task" in req.message.lower() or "todo" in req.message.lower():
-            session.add(Task(user_id=current_user.id, title=req.message))
+        # 🔥 Improved Task Detection
+        task_keywords = ["task", "todo", "karna hai", "reminder", "yaad", "bazar", "buy"]
+        if any(word in req.message.lower() for word in task_keywords):
+            new_task = Task(user_id=current_user.id, title=req.message)
+            session.add(new_task)
             
-        session.add(ChatHistory(user_id=current_user.id, prompt=req.message, response=ai_msg))
+        new_chat = ChatHistory(user_id=current_user.id, prompt=req.message, response=ai_msg)
+        session.add(new_chat)
         session.commit()
-        return {"message": ai_msg, "chat_id": 0}
+        
+        # Frontend expects 'message' field
+        return {"message": ai_msg, "status": "success"}
     except Exception as e:
+        session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-# ... Signup/Login endpoints same as before ...
+# ... Auth routes (Signup/Login) paste here from your existing main.py ...

@@ -2,42 +2,16 @@
 import { useState } from 'react';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 
-export const ChatInput = ({ onSend }) => {
+export const ChatInput = ({ onSend, disabled }) => {
   const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space';
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
-
-    setIsLoading(true);
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert("Session expired. Please login again.");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${backendUrl}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ message: inputValue }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        onSend(data.message);
-        setInputValue('');
-      } else {
-        alert(data.detail || 'Backend error');
-      }
-    } catch (err) {
-      alert('Failed to connect to backend.');
-    } finally {
-      setIsLoading(false);
-    }
+    if (!inputValue.trim() || disabled) return;
+    
+    // Sirf Page.js ko message bhejdo, wo khud backend sambhal lega
+    onSend(inputValue);
+    setInputValue('');
   };
 
   return (
@@ -46,15 +20,15 @@ export const ChatInput = ({ onSend }) => {
         type="text"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        placeholder="Type your message..."
-        disabled={isLoading}
+        placeholder={disabled ? "AI is thinking..." : "Type your message..."}
+        disabled={disabled}
         className="flex-1 chat-input px-4 py-3 rounded-xl text-slate-900 placeholder-gray-500 bg-white/80 focus:outline-none focus:ring-2 focus:ring-emerald-500"
       />
       <button
         type="submit"
-        disabled={isLoading || !inputValue.trim()}
+        disabled={disabled || !inputValue.trim()}
         className={`glow-button p-3 rounded-xl flex items-center justify-center transition-all duration-300 ${
-          isLoading || !inputValue.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-neon'
+          disabled || !inputValue.trim() ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 hover:shadow-neon bg-emerald-600'
         }`}
       >
         <PaperAirplaneIcon className="h-5 w-5 text-white" />

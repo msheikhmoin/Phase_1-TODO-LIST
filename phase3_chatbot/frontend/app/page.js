@@ -20,12 +20,15 @@ export default function Home() {
 
   useEffect(() => setMounted(true), []);
 
-  // ✅ Fetch tasks safely
   const fetchTasks = useCallback(async () => {
     const token = localStorage.getItem('token');
+    const user_id = localStorage.getItem('user_id'); // Backend se user_id bhi lena hai
     if (!token) return router.push('/login');
     try {
-      const res = await fetch(`${API_URL}/tasks`, { headers: { 'Authorization': `Bearer ${token}` } });
+      // User specific tasks fetch karein
+      const res = await fetch(`${API_URL}/tasks/${user_id}`, { 
+        headers: { 'Authorization': `Bearer ${token}` } 
+      });
       if (res.ok) {
         const data = await res.json();
         setTasks(Array.isArray(data) ? data : []);
@@ -37,17 +40,13 @@ export default function Home() {
 
   useEffect(() => { if (mounted) fetchTasks(); }, [fetchTasks, mounted]);
 
-  // ✅ Handle chat messages
   const handleSendMessage = async (msg) => {
     if (!msg.trim()) return;
     const token = localStorage.getItem('token');
-    if (!token) {
-      alert("Session expired. Please login again.");
-      return router.push('/login');
-    }
+    if (!token) return router.push('/login');
 
-    const userMsgId = Date.now();
-    setMessages(p => [...p, { id: userMsgId, content: msg, role: "user" }]);
+    // 1. Pehle user ka message screen par dikhao
+    setMessages(p => [...p, { id: Date.now(), content: msg, role: "user" }]);
     setIsLoading(true);
 
     try {
@@ -59,11 +58,14 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessages(p => [...p, { id: Date.now() + 1, content: data.message, role: "assistant" }]);
-        setTimeout(() => fetchTasks(), 1000);
+        // 2. AI ka jawab screen par dikhao
+        const aiMsg = data.response || data.message;
+        setMessages(p => [...p, { id: Date.now() + 1, content: aiMsg, role: "assistant" }]);
+        
+        // Agar task add hua hai toh tasks refresh karo
+        setTimeout(() => fetchTasks(), 1500);
       } else {
-        const errorMsg = data.detail || "Something went wrong.";
-        setMessages(p => [...p, { id: Date.now() + 1, content: `Error: ${errorMsg}`, role: "assistant" }]);
+        setMessages(p => [...p, { id: Date.now() + 1, content: "Error: Could not get response", role: "assistant" }]);
       }
     } catch (e) {
       setMessages(p => [...p, { id: Date.now() + 1, content: "Network error.", role: "assistant" }]);
@@ -77,19 +79,15 @@ export default function Home() {
 
   return (
     <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-black text-white">
-      {/* Background overlay */}
       <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40" style={{ backgroundImage: "url('/green.jpg')" }} />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-slate-950/90"></div>
-
       <div className="relative z-10 flex h-full w-full">
-        <Sidebar onLogout={() => { localStorage.removeItem('token'); router.push('/login'); }} />
-
+        <Sidebar onLogout={() => { localStorage.clear(); router.push('/login'); }} />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="bg-white/5 backdrop-blur-md p-4 border-b border-white/10 flex items-center justify-between h-16">
             <h1 className="text-xl font-bold text-emerald-400">VIP Todo AI</h1>
             <Clock />
           </header>
-
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-slate-500 mt-20">
@@ -104,18 +102,16 @@ export default function Home() {
                 </div>
               </div>
             ))}
+            {isLoading && <div className="text-emerald-400 animate-pulse">Thinking...</div>}
             <div ref={messagesEndRef} />
           </div>
-
           <div className="p-4 bg-black/40 backdrop-blur-lg border-t border-white/5">
-            <ChatInput onSend={handleSendMessage} />
+            <ChatInput onSend={handleSendMessage} disabled={isLoading} />
           </div>
         </div>
-
         <div className="w-80 bg-black/40 border-l border-white/10 backdrop-blur-md overflow-y-auto p-4 hidden lg:block">
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-xl">✅</span>
-            <h2 className="text-emerald-400 font-bold text-lg tracking-widest">MY TASKS</h2>
+          <div className="flex items-center gap-2 mb-6 text-emerald-400 font-bold tracking-widest uppercase">
+            <span>✅</span> MY TASKS
           </div>
           <div className="space-y-3">
             {tasks.length === 0 ? (

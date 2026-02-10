@@ -11,7 +11,7 @@ export default function Signup() {
   const [success, setSuccess] = useState('');
   const router = useRouter();
 
-  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space'; // ✅ Hugging Face backend
+  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

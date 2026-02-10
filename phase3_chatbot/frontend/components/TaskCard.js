@@ -2,32 +2,20 @@
 import { TrashIcon, CalendarIcon, TagIcon } from '@heroicons/react/24/outline';
 
 export const TaskCard = ({ task, onDelete }) => {
-  // Safety check for task object
-  if (!task) {
-    console.error("TaskCard received undefined/null task");
-    return null;
-  }
-
-  // Debug log to check incoming data in Browser Console (F12)
-  console.log("Rendering Task:", task);
+  if (!task) return null;
 
   const formatDate = (dateValue) => {
     if (!dateValue) return 'No Date';
-    try {
-      const date = new Date(dateValue);
-      return isNaN(date.getTime()) ? 'No Date' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } catch (e) {
-      return 'No Date';
-    }
+    const date = new Date(dateValue);
+    return isNaN(date.getTime()) ? 'No Date' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   return (
     <div className="bg-black/20 backdrop-blur-md border border-emerald-500/30 rounded-2xl p-4 mb-3 relative group shadow-[0_0_15px_rgba(52,211,153,0.1)] hover:border-emerald-400/60 transition-all">
-      {/* DELETE BUTTON */}
       <button
         onClick={(e) => {
           e.stopPropagation();
-          if(window.confirm('Delete this task?')) onDelete(task.id); // Keeping task.id as it should match the backend
+          if(window.confirm('Delete this task?')) onDelete(task.id);
         }}
         className="absolute top-3 right-3 p-1.5 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors z-50"
       >

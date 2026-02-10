@@ -1,24 +1,26 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState(''); 
+  const [username, setUsername] = useState('');
   const [isSignup, setIsSignup] = useState(false);
-  const [error, setError] = useState(''); 
+  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space'; // ✅ Hugging Face backend
+  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(''); 
+    setError('');
     setIsLoading(true);
-    
+
     const endpoint = isSignup ? 'signup' : 'login';
     const payload = isSignup ? { email, username, password } : { email, password };
-    
+
     try {
       const res = await fetch(`${backendUrl}/${endpoint}`, {
         method: 'POST',
@@ -27,13 +29,14 @@ export default function LoginPage() {
       });
 
       const data = await res.json();
+
       if (res.ok) {
         if (isSignup) {
           alert("Signup successful! Please Sign In.");
           setIsSignup(false);
         } else {
           localStorage.setItem('token', data.access_token);
-          window.location.href = '/'; 
+          router.push('/'); // Redirect to main app
         }
       } else {
         setError(data.detail || "Error occurred");
@@ -50,7 +53,7 @@ export default function LoginPage() {
       <div className="bg-[#1e2235] p-8 rounded-3xl w-full max-w-md shadow-2xl border border-white/5">
         <h1 className="text-2xl font-bold text-white text-center mb-2">{isSignup ? "Join Us" : "Welcome Back"}</h1>
         <p className="text-slate-400 text-center mb-8 text-sm">{isSignup ? "Create your account" : "Sign in to continue"}</p>
-        
+
         {error && <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-xs text-center border border-red-500/20">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">

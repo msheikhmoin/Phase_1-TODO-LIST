@@ -12,6 +12,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.className} text-white min-h-screen relative`}>
+        {/* Background */}
         <div style={{
           position: 'fixed',
           top: 0,
@@ -25,7 +26,6 @@ export default function RootLayout({ children }) {
           zIndex: -1,
           opacity: 0.8
         }} id="force-bg" />
-        {/* Forced Re-render Version: 1.0.2 */}
         {children}
       </body>
     </html>

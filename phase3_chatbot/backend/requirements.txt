@@ -1,7 +1,9 @@
 fastapi
-uvicorn
-cohere
-sqlalchemy
-python-dotenv
+uvicorn[standard]
+sqlmodel
 psycopg2-binary
-requests
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
+cohere
+httptools

@@ -5,38 +5,35 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 export const ChatInput = ({ onSend }) => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
   const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!inputValue.trim() || isLoading) return;
 
-    const token = localStorage.getItem('token');
-    if (!token) return alert('Please login first.');
-
     setIsLoading(true);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Session expired. Please login again.");
+      return;
+    }
 
     try {
       const res = await fetch(`${backendUrl}/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ message: inputValue }),
       });
 
       const data = await res.json();
-
       if (res.ok) {
         onSend(data.message);
         setInputValue('');
       } else {
-        console.error('Error from backend:', data.detail);
         alert(data.detail || 'Backend error');
       }
     } catch (err) {
-      console.error('Connection failed:', err);
       alert('Failed to connect to backend.');
     } finally {
       setIsLoading(false);

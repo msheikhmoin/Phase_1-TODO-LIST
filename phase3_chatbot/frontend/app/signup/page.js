@@ -15,6 +15,9 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -36,7 +39,7 @@ export default function Signup() {
         setError(data.detail || 'Registration failed');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError('Backend connection failed.');
     }
   };
 

@@ -13,10 +13,7 @@ export const TaskCard = ({ task, onDelete }) => {
   return (
     <div className="bg-black/20 backdrop-blur-md border border-emerald-500/30 rounded-2xl p-4 mb-3 relative group shadow-[0_0_15px_rgba(52,211,153,0.1)] hover:border-emerald-400/60 transition-all">
       <button
-        onClick={(e) => {
-          e.stopPropagation();
-          if(window.confirm('Delete this task?')) onDelete(task.id);
-        }}
+        onClick={(e) => { e.stopPropagation(); if(window.confirm('Delete this task?')) onDelete(task.id); }}
         className="absolute top-3 right-3 p-1.5 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors z-50"
       >
         <TrashIcon className="h-5 w-5" />

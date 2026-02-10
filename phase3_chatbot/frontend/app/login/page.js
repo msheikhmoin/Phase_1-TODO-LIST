@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +18,9 @@ export default function LoginPage() {
     setIsLoading(true);
 
     const endpoint = isSignup ? 'signup' : 'login';
-    const payload = isSignup ? { email, username, password } : { email, password };
+    const payload = isSignup
+      ? { email, username: email.split('@')[0], password } // default username
+      : { email, password };
 
     try {
       const res = await fetch(`${backendUrl}/${endpoint}`, {
@@ -36,10 +37,10 @@ export default function LoginPage() {
           setIsSignup(false);
         } else {
           localStorage.setItem('token', data.access_token);
-          router.push('/'); // Redirect to main app
+          router.push('/');
         }
       } else {
-        setError(data.detail || "Error occurred");
+        setError(data.detail || "Invalid credentials");
       }
     } catch (err) {
       setError("Backend connection failed.");
@@ -58,7 +59,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {isSignup && (
-            <input type="text" placeholder="Username" className="w-full bg-[#2a2f45] p-4 rounded-xl text-white outline-none" value={username} onChange={(e) => setUsername(e.target.value)} required />
+            <input type="text" placeholder="Username" className="w-full bg-[#2a2f45] p-4 rounded-xl text-white outline-none" value={email.split('@')[0]} disabled />
           )}
           <input type="email" placeholder="Email" className="w-full bg-[#2a2f45] p-4 rounded-xl text-white outline-none" value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input type="password" placeholder="Password" className="w-full bg-[#2a2f45] p-4 rounded-xl text-white outline-none" value={password} onChange={(e) => setPassword(e.target.value)} required />

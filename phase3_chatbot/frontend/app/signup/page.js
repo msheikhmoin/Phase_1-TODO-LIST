@@ -11,6 +11,8 @@ export default function Signup() {
   const [success, setSuccess] = useState('');
   const router = useRouter();
 
+  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space'; // ✅ Hugging Face backend
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -19,8 +21,7 @@ export default function Signup() {
     }
 
     try {
-      // 🔥 FIX: Matching your main.py route exactly
-      const response = await fetch(`https://moin-robo-todo-ai-backend.hf.space/signup`, {
+      const response = await fetch(`${backendUrl}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),

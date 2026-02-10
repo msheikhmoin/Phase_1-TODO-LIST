@@ -9,6 +9,8 @@ export default function LoginPage() {
   const [error, setError] = useState(''); 
   const [isLoading, setIsLoading] = useState(false);
 
+  const backendUrl = 'https://moin-robo-todo-ai-backend.hf.space'; // ✅ Hugging Face backend
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); 
@@ -18,7 +20,7 @@ export default function LoginPage() {
     const payload = isSignup ? { email, username, password } : { email, password };
     
     try {
-      const res = await fetch(`https://moin-robo-todo-ai-backend.hf.space/${endpoint}`, {
+      const res = await fetch(`${backendUrl}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

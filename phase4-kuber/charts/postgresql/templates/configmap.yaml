@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.fullname" . }}-config
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+data:
+  postgresql.conf: |
+    max_connections = {{ .Values.postgresql.config.max_connections }}
+    shared_buffers = {{ .Values.postgresql.config.shared_buffers }}
+    log_statement = 'all'
+    log_min_duration_statement = 1000
+    track_activities = on
+    track_counts = on
+    track_io_timing = on
